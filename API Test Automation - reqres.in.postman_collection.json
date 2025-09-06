@@ -1,0 +1,233 @@
+{
+	"info": {
+		"_postman_id": "5a037478-0632-4d60-95ca-669ac6b35409",
+		"name": "API Test Automation - reqres.in",
+		"description": "Small automation project for create user and single user tests using ReqRes.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "19914647",
+		"_collection_link": "https://cloudy-shuttle-877271.postman.co/workspace/Automation-Testing~7626f8f1-21ab-449b-acc7-3a4b4d23eeff/collection/19914647-5a037478-0632-4d60-95ca-669ac6b35409?action=share&source=collection_link&creator=19914647"
+	},
+	"item": [
+		{
+			"name": "Create User",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Ensure base_url exists",
+							"if (!pm.environment.get('base_url')) {",
+							"    pm.environment.set('base_url', 'https://reqres.in');",
+							"}",
+							"// Timestamp for request body",
+							"pm.variables.set('now_iso', new Date().toISOString());"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status is 201 Created\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"pm.test(\"Response has id and createdAt\", function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json).to.have.property('id');",
+							"    pm.expect(json).to.have.property('createdAt');",
+							"});",
+							"pm.test(\"Echoed name & job match request\", function () {",
+							"    const req = pm.request.body ? pm.request.body.toString() : \"\";",
+							"    const sent = req ? JSON.parse(req) : {};",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.name).to.eql(sent.name);",
+							"    pm.expect(json.job).to.eql(sent.job);",
+							"});",
+							"// Save dynamic id for potential chaining",
+							"const json = pm.response.json();",
+							"if (json.id) pm.environment.set('created_user_id', json.id);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Dewi Testing\",\r\n    \"job\": \"Quality Assurance\",\r\n    \"ts\": \"{{now_iso}}\"\r\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/users",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Single User (Positive)",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Ensure base_url exists",
+							"if (!pm.environment.get('base_url')) {",
+							"    pm.environment.set('base_url', 'https://reqres.in');",
+							"}",
+							"// Timestamp for request body",
+							"pm.variables.set('now_iso', new Date().toISOString());"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status is 200 OK\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"Has user data object\", function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json).to.have.property('data');",
+							"    pm.expect(json.data).to.have.property('id', parseInt(pm.environment.get('user_id_positive')));",
+							"    pm.expect(json.data).to.have.property('email');",
+							"    pm.expect(json).to.have.property('support');",
+							"});",
+							"pm.test(\"Email format looks valid\", function () {",
+							"    const email = pm.response.json().data.email;",
+							"    pm.expect(email).to.match(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/);",
+							"});",
+							"\\npm.test(\"Schema matches (GET single user)\", function () {",
+							"    const schema = {\"type\": \"object\", \"required\": [\"data\", \"support\"], \"properties\": {\"data\": {\"type\": \"object\", \"required\": [\"id\", \"email\", \"first_name\", \"last_name\", \"avatar\"], \"properties\": {\"id\": {\"type\": \"integer\"}, \"email\": {\"type\": \"string\", \"format\": \"email\"}, \"first_name\": {\"type\": \"string\"}, \"last_name\": {\"type\": \"string\"}, \"avatar\": {\"type\": \"string\"}}}, \"support\": {\"type\": \"object\", \"required\": [\"url\", \"text\"], \"properties\": {\"url\": {\"type\": \"string\"}, \"text\": {\"type\": \"string\"}}}}};",
+							"    pm.response.to.have.jsonSchema(schema);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/users/{{user_id_positive}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"users",
+						"{{user_id_positive}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Single User (Negative)",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Ensure base_url exists",
+							"if (!pm.environment.get('base_url')) {",
+							"    pm.environment.set('base_url', 'https://reqres.in');",
+							"}",
+							"// Timestamp for request body",
+							"pm.variables.set('now_iso', new Date().toISOString());"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status is 404 Not Found\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"pm.test(\"Body is empty object {}\", function () {",
+							"    const text = pm.response.text();",
+							"    pm.expect(text.trim()).to.be.oneOf([\"{}\", \"\"]);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/users/{{user_id_negative}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"users",
+						"{{user_id_negative}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "apikey",
+		"apikey": [
+			{
+				"key": "value",
+				"value": "reqres-free-v1",
+				"type": "string"
+			},
+			{
+				"key": "key",
+				"value": "x-api-key",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
